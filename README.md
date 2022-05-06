@@ -1,2 +1,0 @@
-# BCI-EEG-Training
-

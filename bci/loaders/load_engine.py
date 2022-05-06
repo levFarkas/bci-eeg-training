@@ -32,6 +32,8 @@ class LoadEngine:
             sample = int(record[-6:-4])
             # get SXX value of the record
             record_name = record[:4]
+            if int(record_name[1:]) > 5:
+                continue
 
             if int(record_name[1:]) in EXCLUDED_PATIENTS:
                 continue
@@ -113,7 +115,7 @@ class LoadEngine:
                     events = events_from_annotations(raw_data, ANNOTATIONS_BOTH_FISTS_AND_FEET)
                 else:
                     events = events_from_annotations(raw_data, ANNOTATIONS)
-                epochs = Epochs(raw_data, events[0], picks=picks, preload=True, normaliztion="full")
+                epochs = Epochs(raw_data, events[0], picks=picks, preload=True)
                 eeg_data.epochs = epochs
                 eeg_data.events = events
                 ica = ICA(n_components=4, method="fastica")

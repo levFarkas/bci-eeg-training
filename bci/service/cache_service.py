@@ -31,4 +31,4 @@ class CacheService:
         for key, value in data.items():
             print(f"Patient: {key}")
             for eeg_data in value:
-                eeg_data.raw.plot()
+                eeg_data.raw.plot(n_channels=64)

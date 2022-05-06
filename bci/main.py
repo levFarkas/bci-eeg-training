@@ -22,16 +22,19 @@ class Handler:
             if self._cache_service.is_already_cached() \
             else self._load_engine.load_all_data("../resources/files/eegmmidb/1.0.0")
 
-        # Epochs: ndarray (174, 3)
-        # Events: ndarray (180, 3)
-
-        featured_data = self._convert_to_featured_data(data)
-        test_data, train_data = self._feature_service.get_test_and_train_data(featured_data)
+        featured_data = self._convert_to_featured_data(data, csp=False)
+        train_features, test_features, train_labels, test_labels = self._feature_service.get_test_and_train_data(featured_data)
         neural_network = NeuralNetwork()
-        neural_network.train(train_data, test_data)
+        neural_network.train(
+            train_labels=train_labels,
+            train_features=train_features,
+            test_labels=test_labels,
+            test_features=test_features
+        )
 
-    def _convert_to_featured_data(self, data: Dict[str, Tuple[EEGData, EEGData]]) -> Dict[str, tuple]:
-        return {key: self._feature_service.feature_extraction(data[key]) for key in data}
+    def _convert_to_featured_data(self, data: Dict[str, Tuple[EEGData, EEGData]], csp: bool) -> Dict[str, tuple]:
+        return {key: self._feature_service.feature_extraction(data[key], csp) for key in data}
+
 
 
 if __name__ == '__main__':
