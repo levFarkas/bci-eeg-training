@@ -11,15 +11,21 @@ class NeuralNetwork:
 
     def train(self, train_features, test_features, train_labels, test_labels):
         model = Sequential([
-            Conv2D(filters=16, kernel_size=[30, 1], input_shape=(64, 113, 1), activation='relu'),
-            Conv2D(filters=32, kernel_size=[1, 64], activation='relu'),
-            AveragePooling2D(),
+            Conv2D(filters=16, kernel_size=[1, 30], input_shape=(64, 113, 1), activation='relu'),
+            Conv2D(filters=32, kernel_size=[64, 1], activation='relu'),
+            AveragePooling2D(pool_size=(1, 2)),
             Flatten(),
             Dense(units=2, activation='softmax')
         ])
 
-        model.summary()
+        # labels = {}
+        # for label in train_labels:
+        #     if label in labels:
+        #         labels[label] += 1
+        #     else:
+        #         labels[label] = 1
 
+        model.summary()
         model.compile(optimizer="adam", loss='sparse_categorical_crossentropy', metrics=['accuracy'])
         model.fit(x=train_features, y=train_labels, validation_data=(test_features, test_labels), batch_size=10,
                   epochs=75, shuffle=True, verbose=2)

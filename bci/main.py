@@ -1,5 +1,4 @@
-import matplotlib.pyplot as plt
-
+import numpy as np
 
 from typing import Dict, Tuple
 
@@ -23,8 +22,15 @@ class Handler:
             else self._load_engine.load_all_data("../resources/files/eegmmidb/1.0.0")
 
         featured_data = self._convert_to_featured_data(data, csp=False)
-        train_features, test_features, train_labels, test_labels = self._feature_service.get_test_and_train_data(featured_data)
+        train_features, test_features, train_labels, test_labels = self._feature_service.get_test_and_train_data(
+            featured_data)
         neural_network = NeuralNetwork()
+
+        train_labels = np.concatenate(train_labels)
+        train_features = np.concatenate(train_features)
+        test_labels = np.concatenate(test_labels)
+        test_features = np.concatenate(test_features)
+
         neural_network.train(
             train_labels=train_labels,
             train_features=train_features,
@@ -34,7 +40,6 @@ class Handler:
 
     def _convert_to_featured_data(self, data: Dict[str, Tuple[EEGData, EEGData]], csp: bool) -> Dict[str, tuple]:
         return {key: self._feature_service.feature_extraction(data[key], csp) for key in data}
-
 
 
 if __name__ == '__main__':
