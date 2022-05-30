@@ -5,7 +5,7 @@ from mne import Epochs, events_from_annotations, pick_types, concatenate_raws
 from mne.io import read_raw_edf
 from mne.preprocessing import ICA
 
-from bci.model.eeg_data import EEGData, ANNOTATIONS, BOTH_FISTS_AND_BOTH_FEET_EXERCISES, LEFT_AND_RIGHT_HAND_EXERCISES, \
+from bci.model.eeg_data import EEGData, ANNOTATIONS_LEFT_AND_RIGHT_HANDS, BOTH_FISTS_AND_BOTH_FEET_EXERCISES, LEFT_AND_RIGHT_HAND_EXERCISES, \
     ANNOTATIONS_BOTH_FISTS_AND_FEET
 from bci.service.cache_service import CacheService
 
@@ -19,7 +19,12 @@ class LoadEngine:
 
     def load_all_data(self, folder_path: str) -> Dict[str, Tuple[EEGData, EEGData]]:
         raw_data = self._load_raw_data(folder_path)
-        aggregated_data = self._aggregate_data(raw_data)
+
+        # TODO remove test parameter
+
+        test = True
+
+        aggregated_data = self._aggregate_data(raw_data, test)
         self._preprocess(aggregated_data)
         self._cache_service.cache_data(aggregated_data)
         return aggregated_data
@@ -50,13 +55,23 @@ class LoadEngine:
         return all_data
 
     @staticmethod
-    def _aggregate_data(data: List[EEGData]) -> Dict[str, Tuple[EEGData, EEGData]]:
+    def _aggregate_data(data: List[EEGData], test=False) -> Dict[str, Tuple[EEGData, EEGData]]:
 
         def multiple_eeg_data_to_simple_one(eeg_list: List[EEGData]) -> (EEGData, EEGData):
+
             both_hands_and_feet_raws = [eeg.raw for eeg in eeg_list if
                                         eeg.exercise_number in BOTH_FISTS_AND_BOTH_FEET_EXERCISES]
             left_and_right_hand_raws = [eeg.raw for eeg in eeg_list if
                                         eeg.exercise_number in LEFT_AND_RIGHT_HAND_EXERCISES]
+
+            if test:
+                return (
+                    EEGData(
+                        exercise_number=LEFT_AND_RIGHT_HAND_EXERCISES[0],
+                        record_name=eeg_list[0].record_name,
+                        raw=concatenate_raws(left_and_right_hand_raws)
+                    ),
+                )
 
             return (
                 EEGData(
@@ -108,14 +123,16 @@ class LoadEngine:
         for eeg_tuple in aggregated_data.values():
             for eeg_data in eeg_tuple:
                 raw_data = eeg_data.raw
-                raw_data.filter(7, 30, method="iir")
+                # raw_data.filter(7, 30, method="iir")
                 # raw_data = preprocessing.normalize(raw_data, norm='l2')
                 picks = pick_types(raw_data.info, meg=False, eeg=True, stim=False, eog=False, exclude="bads")
+
                 if eeg_data.exercise_number in BOTH_FISTS_AND_BOTH_FEET_EXERCISES:
                     events = events_from_annotations(raw_data, ANNOTATIONS_BOTH_FISTS_AND_FEET)
                 else:
-                    events = events_from_annotations(raw_data, ANNOTATIONS)
-                epochs = Epochs(raw_data, events[0], picks=picks, preload=True)
+                    events = events_from_annotations(raw_data, ANNOTATIONS_LEFT_AND_RIGHT_HANDS)
+                epochs = Epochs(raw_data, events[0], picks=picks, preload=True, baseline=None)
+                epochs.equalize_event_counts()
                 eeg_data.epochs = epochs
                 eeg_data.events = events
                 ica = ICA(n_components=4, method="fastica")

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from mne import Epochs
 from mne.io.edf.edf import RawEDF
 
-ANNOTATIONS = {
+ANNOTATIONS_LEFT_AND_RIGHT_HANDS = {
     "T0": 1,
     "T1": 2,
     "T2": 3
