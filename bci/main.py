@@ -21,7 +21,7 @@ class Handler:
             if self._cache_service.is_already_cached() \
             else self._load_engine.load_all_data("../resources/files/eegmmidb/1.0.0")
 
-        featured_data = self._convert_to_featured_data(data, csp=False)
+        featured_data = self._convert_to_featured_data(data, csp=True)
         train_features, test_features, train_labels, test_labels = self._feature_service.get_test_and_train_data(
             featured_data)
         neural_network = NeuralNetwork()
