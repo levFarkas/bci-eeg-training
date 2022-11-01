@@ -34,24 +34,30 @@ class FeatureService:
         if csp:
             # y_unique = np.unique(y)
             # TODO - do handshake algorithm
-            y_pairs = ((1, 2), (1, 3), (2, 3))
-            x_results = []
-            for pair in y_pairs:
-                x_csp, y_csp = self._get_prepared_csp_data_based_on_pairs(pair, x, y)
-                x_csp, y_csp = self._shuffle_two_arrays_in_same_order(x_csp, y_csp)
+            # y_pairs = ((1, 2), (1, 3), (2, 3))
+            # x_results = []
+            # for pair in y_pairs:
+            #     x_csp, y_csp = self._get_prepared_csp_data_based_on_pairs(pair, x, y)
+            #     x_csp, y_csp = self._shuffle_two_arrays_in_same_order(x_csp, y_csp)
+            #
+            #     csp = CSP(n_components=4, log=None, reg=None, transform_into="csp_space")
+            #     if len(x_csp) % 2 == 1:
+            #         fit_set, transform_set = np.split(x_csp[0:-1, :, :], 2, 0)
+            #         fit_label, _ = np.split(y_csp[0:-1], 2, 0)
+            #     else:
+            #         fit_set, transform_set = np.split(x_csp, 2, 0)
+            #         fit_label, _ = np.split(y_csp, 2, 0)
+            #
+            #     x_csp_result = csp.fit_transform(fit_set, fit_label) + csp.transform(transform_set)
+            #     x_results.append(x_csp_result)
+            #
+            # x = np.concatenate(tuple([*
 
-                csp = CSP(n_components=4, log=True, reg=None)
-                if len(x_csp) % 2 == 1:
-                    fit_set, transform_set = np.split(x_csp[0:-1, :, :], 2, 0)
-                    fit_label, _ = np.split(y_csp[0:-1], 2, 0)
-                else:
-                    fit_set, transform_set = np.split(x_csp, 2, 0)
-                    fit_label, _ = np.split(y_csp, 2, 0)
+            csp = CSP(n_components=4, log=None, reg=None, transform_into="csp_space")
 
-                x_csp_result = csp.fit_transform(fit_set, fit_label) + csp.transform(transform_set)
-                x_results.append(x_csp_result)
-            x = np.concatenate(tuple([*x_results]))
-        # x = reshape(x)
+            x = csp.fit_transform(x, y)
+        else:
+            x = reshape(x)
         return x, y
 
     @staticmethod
@@ -84,12 +90,3 @@ def _normalize_data(epochs_data: np.ndarray):
     new_epochs_data = l2_normalize(new_epochs_data, 1)
 
     return new_epochs_data
-    # x, y, z = new_epochs_data.shape
-    # for i in range(x):
-    #     for j in range(y):
-    #         row = new_epochs_data[i, j, :]
-    #         # normalized_row = row / np.linalg.norm(row)
-    #         # normalized_row = (row - np.average(row)) / np.std(row, axis=0)
-    #
-    #         # normalized_row = row / np.std(row, axis=0)
-    #         new_epochs_data[i, j, :] = normalized_row

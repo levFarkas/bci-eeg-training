@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from keras import Sequential
 from keras.callbacks import EarlyStopping
-from keras.layers import Conv2D, AveragePooling2D, Flatten, Dense, Lambda, Dropout, Activation
+from keras.layers import Conv2D, Flatten, Dense, Activation, MaxPooling2D, \
+    BatchNormalization, Dropout, AveragePooling2D
+from keras.optimizer_v2.adam import Adam
 from sklearn.metrics import confusion_matrix
 
 
@@ -21,36 +23,29 @@ class NeuralNetwork:
         data_points = x_shape[0]
         time_steps = x_shape[1]
 
-        # model = Sequential([
-        #     Conv2D(params['layer1'], kernel_size=(15, 1),
-        #            input_shape=(1, data_points, time_steps),
-        #            padding='same'),
-        #     Dropout(0.25),
-        #     Activation("relu"),
-        #     Conv2D(params['layer2'], kernel_size=(1, data_points),
-        #            input_shape=(1, data_points, time_steps),
-        #            padding='valid'),
-        #     Dropout(0.25),
-        #     Activation("relu"),
-        #     AveragePooling2D(pool_size=(15, 1), padding='same'),
-        #     Dropout(0.25),
-        #     Flatten(),
-        #     Dense(params['neurons']),
-        #     Activation('relu'),
-        #     Activation('softmax'),
-        #     Dropout(0.25),
-        #     Dense(4),
-        #     Activation('softmax')
-        # ])
-
         model = Sequential([
-            Dense(units=8, input_shape=(4,), activation='relu'),
-            Dense(units=16, activation='relu'),
-            Dense(units=16, activation='relu'),
-            Dense(units=2, activation='softmax')
+            Conv2D(params['layer1'], kernel_size=(15, 1),
+                   input_shape=(1, data_points, time_steps),
+                   padding='same'),
+            Dropout(0.25),
+            Activation("relu"),
+            Conv2D(params['layer2'], kernel_size=(1, data_points),
+                   input_shape=(1, data_points, time_steps),
+                   padding='valid'),
+            Dropout(0.25),
+            Activation("relu"),
+            AveragePooling2D(pool_size=(15, 1), padding='same'),
+            Dropout(0.25),
+            Flatten(),
+            Dense(params['neurons']),
+            Activation('relu'),
+            Activation('softmax'),
+            Dropout(0.25),
+            Dense(4),
+            Activation('softmax')
         ])
 
-        model.compile(optimizer="adam", loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer=Adam(learning_rate=0.001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
         model.summary()
 
         es_callback = EarlyStopping(monitor='val_loss', patience=5, mode="auto")
@@ -59,7 +54,7 @@ class NeuralNetwork:
                   epochs=75, verbose=1, callbacks=[es_callback])
 
         cm_plot_labels = ["Rest", "Left Hand", "Right Hand"]
-        predictions = model.predict(x=test_features, batch_size=10, verbose=0)
+        predictions = model.predict(x=test_features, batch_size=5, verbose=0)
         rounded_predictions = np.argmax(predictions, axis=-1)
         cm = confusion_matrix(y_true=test_labels, y_pred=rounded_predictions)
         self.plot_confusion_matrix(cm=cm, classes=cm_plot_labels, title="Confusion Matrix")
