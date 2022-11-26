@@ -11,6 +11,8 @@ from bci.service.feature_service import FeatureService
 
 class Handler:
 
+    EXTRACTION_TYPE = "morlet"
+
     def __init__(self):
         self._cache_service = CacheService()
         self._load_engine = LoadEngine(cache_service=self._cache_service)
@@ -21,7 +23,7 @@ class Handler:
             if self._cache_service.is_already_cached() \
             else self._load_engine.load_all_data("../resources/files/eegmmidb/1.0.0")
 
-        featured_data = self._convert_to_featured_data(data, csp=False)
+        featured_data = self._convert_to_featured_data(data, type=self.EXTRACTION_TYPE)
         train_features, test_features, train_labels, test_labels = self._feature_service.get_test_and_train_data(
             featured_data)
         neural_network = NeuralNetwork()
@@ -38,8 +40,8 @@ class Handler:
             test_features=test_features
         )
 
-    def _convert_to_featured_data(self, data: Dict[str, Tuple[EEGData, EEGData]], csp: bool) -> Dict[str, tuple]:
-        return {key: self._feature_service.feature_extraction(data[key], csp) for key in data}
+    def _convert_to_featured_data(self, data: Dict[str, Tuple[EEGData, EEGData]], **kwargs) -> Dict[str, tuple]:
+        return {key: self._feature_service.feature_extraction(data[key], type=kwargs.get("type")) for key in data}
 
 
 if __name__ == '__main__':

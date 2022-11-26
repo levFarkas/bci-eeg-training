@@ -1,7 +1,9 @@
 import itertools
 from typing import List, Dict, Tuple
 
+import mne
 from mne import Epochs, events_from_annotations, pick_types, concatenate_raws
+from mne.datasets.eegbci import eegbci
 from mne.io import read_raw_edf
 from mne.preprocessing import ICA
 
@@ -123,7 +125,16 @@ class LoadEngine:
         for eeg_tuple in aggregated_data.values():
             for eeg_data in eeg_tuple:
                 raw_data = eeg_data.raw
-                # raw_data.filter(7, 30, method="iir")
+                raw_data.rename_channels(lambda x: x.strip('.'))
+                eegbci.standardize(raw_data)
+                montage = mne.channels.make_standard_montage('standard_1005')
+                no_position = [ch for ch in raw_data.copy().pick_types(eeg=True).ch_names if ch not in montage.ch_names]
+
+                raw_data.set_montage(montage, on_missing='warn')
+                raw_data = raw_data.pick(None, exclude=no_position)
+
+                raw_data.filter(1., 50., fir_design='firwin')
+                # raw_data.filter(7., 30., method="iir")
                 # raw_data = preprocessing.normalize(raw_data, norm='l2')
                 picks = pick_types(raw_data.info, meg=False, eeg=True, stim=False, eog=False, exclude="bads")
 
@@ -131,7 +142,7 @@ class LoadEngine:
                     events = events_from_annotations(raw_data, ANNOTATIONS_BOTH_FISTS_AND_FEET)
                 else:
                     events = events_from_annotations(raw_data, ANNOTATIONS_LEFT_AND_RIGHT_HANDS)
-                epochs = Epochs(raw_data, events[0], picks=picks, preload=True, baseline=None)
+                epochs = Epochs(raw_data, events[0], tmin=0, tmax=2, picks=picks, preload=True, baseline=None)
                 epochs.equalize_event_counts()
                 eeg_data.epochs = epochs
                 eeg_data.events = events
