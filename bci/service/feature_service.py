@@ -44,7 +44,7 @@ class FeatureService:
             return extraction.extract(eeg_tuple[0].epochs)
         elif extraction_type == "morlet":
             extraction = MorletCWTExtraction()
-            return extraction.extract(eeg_tuple[0].epochs)
+            return extraction.extract(eeg_tuple[0].epochs), y
 
         raise RuntimeError("Not supported extractionType")
 

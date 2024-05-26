@@ -11,8 +11,8 @@ class CacheService:
         self._cache_path = "../resources/eeg_data.pickles"
         self._plot_data = False
 
-    def cache_data(self, data: object):
-        with open(self._cache_path, 'wb') as f:
+    def cache_data(self, data: object, path: str):
+        with open(path if path else self._cache_path, 'wb') as f:
             pickle.dump(data, f)
 
     def is_already_cached(self) -> bool:
